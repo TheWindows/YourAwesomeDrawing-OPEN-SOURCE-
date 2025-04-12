@@ -1,6 +1,6 @@
 # 🎨 Online Drawing Game with Chat
 
-![Project Screenshot](screenshot.png) <!-- Add your image file name here -->
+![Screenshot 2025-04-12 212731](https://github.com/user-attachments/assets/119c84f7-8eb0-40d8-ac27-809da9d47106)
 
 ## 🌟 How Does It Work?
 
