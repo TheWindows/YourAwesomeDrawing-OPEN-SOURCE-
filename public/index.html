@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Draw and Deceive - Multiplayer</title>
+  <style>
+    :root {
+      --bg-light: #f3f4f6;
+      --text-light: #111827;
+      --border-light: #d1d5db;
+      --card-light: #ffffff;
+      --button-light: #f9fafb;
+      --button-hover-light: #e5e7eb;
+      --input-light: #ffffff;
+      --chat-other-light: #f3f4f6;
+      --chat-self-light: #bfdbfe;
+      
+      --bg-dark: #111827;
+      --text-dark: #f3f4f6;
+      --border-dark: #374151;
+      --card-dark: #1f2937;
+      --button-dark: #1f2937;
+      --button-hover-dark: #374151;
+      --input-dark: #1f2937;
+      --chat-other-dark: #374151;
+      --chat-self-dark: #1e40af;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .dark {
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    .light {
+      background-color: var(--bg-light);
+      color: var(--text-light);
+    }
+
+    .container {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      min-height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 80rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .room-control {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background-color 0.2s;
+    }
+
+    .btn-primary {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background-color: #2563eb;
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid var(--border-light);
+    }
+
+    .dark .btn-outline {
+      background-color: var(--button-dark);
+      border-color: var(--border-dark);
+    }
+
+    .dark .btn-outline:hover {
+      background-color: var(--button-hover-dark);
+    }
+
+    .light .btn-outline:hover {
+      background-color: var(--button-hover-light);
+    }
+
+    .canvas-container {
+      width: 100%;
+      max-width: 56rem;
+      aspect-ratio: 4/3;
+      position: relative;
+      touch-action: none;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      border: 2px solid var(--border-light);
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      background-color: white;
+    }
+
+    .dark canvas {
+      border-color: var(--border-dark);
+      background-color: #1f2937;
+    }
+
+    .toolbar {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      right: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    input[type="color"] {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      border: 1px solid var(--border-light);
+    }
+
+    .dark input[type="color"] {
+      border-color: var(--border-dark);
+      background-color: var(--input-dark);
+    }
+
+    input[type="range"] {
+      width: 6rem;
+    }
+
+    .dark input[type="range"] {
+      accent-color: #3b82f6;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 56rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-light);
+      overflow: hidden;
+    }
+
+    .dark .card {
+      border-color: var(--border-dark);
+      background-color: var(--card-dark);
+    }
+
+    .light .card {
+      background-color: var(--card-light);
+    }
+
+    .card-content {
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .prompt {
+      font-size: 1.875rem;
+      color: #3b82f6;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    .dark .prompt {
+      color: #60a5fa;
+    }
+
+    .decoy {
+      color: #ef4444;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+
+    .dark .decoy {
+      color: #f87171;
+    }
+
+    .action-buttons {
+      margin-top: 1rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .timer {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ef4444;
+      margin-top: 0.5rem;
+    }
+
+    .dark .timer {
+      color: #f87171;
+    }
+
+    .grid-container {
+      width: 100%;
+      max-width: 56rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .profile-section, .chat-section {
+      position: relative;
+    }
+
+    .profile-header, .chat-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .profile-header svg, .chat-header svg, .players-header svg {
+      margin-right: 0.5rem;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    .profile-popup {
+      position: absolute;
+      top: 3.5rem;
+      right: 0;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      z-index: 50;
+      width: 18rem;
+      border: 1px solid var(--border-light);
+    }
+
+    .dark .profile-popup {
+      border-color: var(--border-dark);
+      background-color: var(--card-dark);
+    }
+
+    .light .profile-popup {
+      background-color: var(--card-light);
+    }
+
+    .profile-popup input, .profile-popup textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      border: 1px solid var(--border-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .dark .profile-popup input, .dark .profile-popup textarea {
+      border-color: var(--border-dark);
+      background-color: var(--input-dark);
+      color: white;
+    }
+
+    .profile-popup textarea {
+      resize: vertical;
+      min-height: 4rem;
+    }
+
+    .profile-info {
+      margin-top: 0.5rem;
+    }
+
+    .profile-name {
+      font-weight: 500;
+    }
+
+    .profile-bio {
+      font-size: 0.875rem;
+    }
+
+    .dark .profile-bio {
+      color: #9ca3af;
+    }
+
+    .light .profile-bio {
+      color: #4b5563;
+    }
+
+    .chat-container {
+      height: 24rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      border-radius: 0.375rem;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      border: 1px solid var(--border-light);
+    }
+
+    .dark .chat-messages {
+      border-color: var(--border-dark);
+      background-color: var(--input-dark);
+    }
+
+    .light .chat-messages {
+      background-color: var(--card-light);
+    }
+
+    .message {
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+    }
+
+    .dark .message-self {
+      background-color: var(--chat-self-dark);
+    }
+
+    .light .message-self {
+      background-color: var(--chat-self-light);
+    }
+
+    .dark .message-other {
+      background-color: var(--chat-other-dark);
+    }
+
+    .light .message-other {
+      background-color: var(--chat-other-light);
+    }
+
+    .message-sender {
+      font-weight: 600;
+    }
+
+    .dark .message-sender-self {
+      color: #93c5fd;
+    }
+
+    .light .message-sender-self {
+      color: #1d4ed8;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      border: 1px solid var(--border-light);
+    }
+
+    .dark .chat-input input {
+      border-color: var(--border-dark);
+      background-color: var(--input-dark);
+      color: white;
+    }
+
+    .players-section {
+      grid-column: 1 / -1;
+    }
+
+    .players-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .players-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .player-card {
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dark .player-card {
+      background-color: var(--chat-other-dark);
+    }
+
+    .light .player-card {
+      background-color: var(--chat-other-light);
+    }
+
+    .player-icon {
+      color: #3b82f6;
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      flex-direction: column;
+    }
+
+    .loading-spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 4px solid #3b82f6;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #loadingStatus {
+      color: white;
+      margin-top: 1rem;
+      font-size: 1.2rem;
+    }
+
+    .retry-button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      cursor: pointer;
+    }
+
+    .retry-button:hover {
+      background-color: #2563eb;
+    }
+  </style>
+</head>
+<body class="light">
+  <div id="loading" class="loading">
+    <div class="loading-spinner"></div>
+    <p id="loadingStatus">Initializing game...</p>
+    <button id="retryButton" class="retry-button">Retry Connection</button>
+  </div>
+
+  <div class="container" style="display: none;">
+    <div class="header">
+      <div class="room-control">
+        <input id="roomInput" type="text" placeholder="Room name" value="default">
+        <button id="joinRoom" class="btn-primary">Join Room</button>
+      </div>
+      <button id="themeToggle" class="btn-outline">Toggle Theme</button>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="drawingCanvas" width="800" height="600"></canvas>
+      <div class="toolbar">
+        <button id="brushTool" class="btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 19a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z"></path>
+            <path d="M12 4v4"></path>
+            <path d="m10.2 6.6-2.5 2.5"></path>
+          </svg>
+          Brush
+        </button>
+        <button id="eraserTool" class="btn-outline">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"></path>
+            <path d="M22 21H7"></path>
+            <path d="m5 11 9 9"></path>
+          </svg>
+          Eraser
+        </button>
+        <button id="fillTool" class="btn-outline">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"></path>
+            <path d="m12 7 4-3 4 3v6l-4 3-4-3Z"></path>
+          </svg>
+          Fill
+        </button>
+        <button id="undoTool" class="btn-outline">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 10h10a4 4 0 0 1 4 4v1"></path>
+            <path d="m3 10 4-4-4-4"></path>
+          </svg>
+        </button>
+        <button id="redoTool" class="btn-outline">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10H11a4 4 0 0 0-4 4v1"></path>
+            <path d="m21 10-4 4 4 4"></path>
+          </svg>
+        </button>
+        <button id="clearTool" class="btn-outline">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"></path>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+          </svg>
+        </button>
+        <input type="color" id="colorPicker" value="#1f2937">
+        <input type="range" id="brushSize" min="1" max="20" value="4">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-content">
+        <h1>Your Prompt:</h1>
+        <p id="promptText" class="prompt">?</p>
+        <p id="decoyText" class="decoy" style="display: none;">(You're the Decoy!)</p>
+        <div id="timerDisplay" class="timer">03:00</div>
+        <div class="action-buttons">
+          <button id="saveButton" class="btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <path d="M17 21v-8H7v8"></path>
+              <path d="M7 3v5h8"></path>
+            </svg>
+            Save
+          </button>
+          <button id="submitButton" class="btn-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m22 2-7 20-4-9-9-4Z"></path>
+              <path d="M22 2 11 13"></path>
+            </svg>
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-container">
+      <div class="profile-section">
+        <div class="card">
+          <div class="card-content">
+            <div class="profile-header">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <h2>Your Profile</h2>
+              <button id="editProfileButton" class="btn-outline" style="margin-left: auto;">
+                Edit
+              </button>
+            </div>
+            <div id="profilePopup" class="profile-popup" style="display: none;">
+              <input id="profileNameInput" type="text" placeholder="Name">
+              <textarea id="profileBioInput" placeholder="Bio"></textarea>
+              <button id="saveProfileButton" class="btn-primary">Save</button>
+            </div>
+            <div class="profile-info">
+              <p id="profileName" class="profile-name">Player</p>
+              <p id="profileBio" class="profile-bio">No bio yet</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-section">
+        <div class="card">
+          <div class="card-content chat-container">
+            <div class="chat-header">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <h2>Chat</h2>
+            </div>
+            <div id="chatMessages" class="chat-messages"></div>
+            <div class="chat-input">
+              <input id="chatInput" type="text" placeholder="Type a message...">
+              <button id="sendMessageButton" class="btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m22 2-7 20-4-9-9-4Z"></path>
+                  <path d="M22 2 11 13"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Players Online Section -->
+      <div class="players-section">
+        <div class="card">
+          <div class="card-content">
+            <div class="players-header">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <h2>Players Online</h2>
+            </div>
+            <div id="playersGrid" class="players-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const prompts = ["Dragon", "Pizza", "Lizard", "Cake", "Rocket", "Tree"];
+    const DRAWING_TIME = 180;
+    const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+    const canvas = document.getElementById('drawingCanvas');
+    const ctx = canvas.getContext('2d');
+    const themeToggle = document.getElementById('themeToggle');
+    const promptText = document.getElementById('promptText');
+    const decoyText = document.getElementById('decoyText');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const saveButton = document.getElementById('saveButton');
+    const submitButton = document.getElementById('submitButton');
+    const brushTool = document.getElementById('brushTool');
+    const eraserTool = document.getElementById('eraserTool');
+    const fillTool = document.getElementById('fillTool');
+    const undoTool = document.getElementById('undoTool');
+    const redoTool = document.getElementById('redoTool');
+    const clearTool = document.getElementById('clearTool');
+    const colorPicker = document.getElementById('colorPicker');
+    const brushSize = document.getElementById('brushSize');
+    const editProfileButton = document.getElementById('editProfileButton');
+    const profilePopup = document.getElementById('profilePopup');
+    const profileNameInput = document.getElementById('profileNameInput');
+    const profileBioInput = document.getElementById('profileBioInput');
+    const saveProfileButton = document.getElementById('saveProfileButton');
+    const profileName = document.getElementById('profileName');
+    const profileBio = document.getElementById('profileBio');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendMessageButton = document.getElementById('sendMessageButton');
+    const playersGrid = document.getElementById('playersGrid');
+    const loadingScreen = document.getElementById('loading');
+    const loadingStatus = document.getElementById('loadingStatus');
+    const retryButton = document.getElementById('retryButton');
+    const container = document.querySelector('.container');
+    const roomInput = document.getElementById('roomInput');
+    const joinRoom = document.getElementById('joinRoom');
+
+    let playerId = localStorage.getItem('playerId') || Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('playerId', playerId);
+    
+    let prompt = "?";
+    let isDecoy = false;
+    let color = "#1f2937";
+    let lineWidth = 4;
+    let tool = "brush";
+    let history = [];
+    let redoStack = [];
+    let timerInterval;
+    let timeLeft = DRAWING_TIME;
+    let drawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    
+    let profile = JSON.parse(localStorage.getItem('profile')) || { 
+      name: `Player${Math.floor(Math.random() * 1000)}`, 
+      bio: "" 
+    };
+    let theme = localStorage.getItem('theme') || "light";
+    let players = [];
+    let room = '';
+    
+    let peerConnection;
+    let dataChannel;
+    let ws;
+
+    function connectWebSocket() {
+      ws = new WebSocket('ws://localhost:8080');
+      
+      ws.onopen = () => {
+        loadingStatus.textContent = "Connected to server!";
+        joinRoom.click();
+      };
+      
+      ws.onclose = () => {
+        loadingStatus.textContent = "Connection lost. Trying to reconnect...";
+        setTimeout(connectWebSocket, 2000);
+      };
+      
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        loadingStatus.textContent = "Connection error. Retrying...";
+      };
+      
+      ws.onmessage = async (event) => {
+        const data = JSON.parse(event.data);
+        switch (data.type) {
+          case 'joined':
+            handleJoinedRoom(data);
+            break;
+          case 'offer':
+            await handleOffer(data);
+            break;
+          case 'answer':
+            await handleAnswer(data);
+            break;
+          case 'candidate':
+            handleCandidate(data);
+            break;
+          case 'players':
+            updatePlayerList(data.players);
+            break;
+          case 'chat':
+            renderChatMessage(data);
+            break;
+        }
+      };
+    }
+
+    function initCanvas() {
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = lineWidth;
+      ctx.strokeStyle = tool === "eraser" ? (theme === "dark" ? "#1f2937" : "white") : color;
+      ctx.fillStyle = theme === "dark" ? "#1f2937" : "white";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function getPromptPair() {
+      const correct = prompts[Math.floor(Math.random() * prompts.length)];
+      let decoy;
+      do {
+        decoy = prompts[Math.floor(Math.random() * prompts.length)];
+      } while (decoy === correct);
+      return { correct, decoy };
+    }
+
+    function startTimer() {
+      timeLeft = DRAWING_TIME;
+      updateTimerDisplay();
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          handleSubmit();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      if (timeLeft <= 30) {
+        timerDisplay.style.color = theme === "dark" ? "#f87171" : "#ef4444";
+      } else {
+        timerDisplay.style.color = theme === "dark" ? "#60a5fa" : "#3b82f6";
+      }
+    }
+
+    function getCanvasPosition(event) {
+      const rect = canvas.getBoundingClientRect();
+      let x, y;
+      
+      if (event.type.includes('touch')) {
+        x = event.touches[0].clientX - rect.left;
+        y = event.touches[0].clientY - rect.top;
+      } else {
+        x = event.clientX - rect.left;
+        y = event.clientY - rect.top;
+      }
+      
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      
+      return {
+        x: x * scaleX,
+        y: y * scaleY
+      };
+    }
+
+    function setupDrawing() {
+      function startDraw(e) {
+        e.preventDefault();
+        drawing = true;
+        const pos = getCanvasPosition(e);
+        [lastX, lastY] = [pos.x, pos.y];
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        sendDrawingData({ type: 'begin', x: lastX, y: lastY });
+      }
+
+      function draw(e) {
+        e.preventDefault();
+        if (!drawing) return;
+        const pos = getCanvasPosition(e);
+        
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        
+        sendDrawingData({
+          type: 'draw',
+          x: pos.x,
+          y: pos.y,
+          color: ctx.strokeStyle,
+          lineWidth: ctx.lineWidth
+        });
+
+        [lastX, lastY] = [pos.x, pos.y];
+      }
+
+      function stopDraw(e) {
+        e.preventDefault();
+        drawing = false;
+      }
+
+      canvas.addEventListener('mousedown', startDraw);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDraw);
+      canvas.addEventListener('mouseleave', stopDraw);
+      canvas.addEventListener('touchstart', startDraw);
+      canvas.addEventListener('touchmove', draw);
+      canvas.addEventListener('touchend', stopDraw);
+    }
+
+    function sendDrawingData(data) {
+      if (dataChannel?.readyState === 'open') {
+        dataChannel.send(JSON.stringify({
+          type: 'draw',
+          ...data,
+          tool: tool
+        }));
+      }
+    }
+
+    function handleDrawingData(data) {
+      ctx.strokeStyle = data.color || color;
+      ctx.lineWidth = data.lineWidth || lineWidth;
+      
+      if (data.type === 'begin') {
+        ctx.beginPath();
+        ctx.moveTo(data.x, data.y);
+      } else {
+        ctx.lineTo(data.x, data.y);
+        ctx.stroke();
+      }
+    }
+
+    function handleSave() {
+      const dataURL = canvas.toDataURL("image/png");
+      localStorage.setItem('drawing', dataURL);
+    }
+
+    function handleSubmit() {
+      handleSave();
+      alert("Time's up! Drawing submitted!");
+      startTimer();
+      const { correct, decoy } = getPromptPair();
+      const decoyChance = Math.random() < 0.25;
+      isDecoy = decoyChance;
+      prompt = decoyChance ? decoy : correct;
+      promptText.textContent = prompt;
+      decoyText.style.display = isDecoy ? 'block' : 'none';
+    }
+
+    function handleClear() {
+      ctx.fillStyle = theme === "dark" ? "#1f2937" : "white";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (dataChannel?.readyState === 'open') {
+        dataChannel.send(JSON.stringify({ type: 'clear' }));
+      }
+    }
+
+    function handleUndo() {
+    }
+
+    function handleRedo() {
+    }
+
+    function handleFill() {
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (dataChannel?.readyState === 'open') {
+        dataChannel.send(JSON.stringify({ type: 'fill', color: color }));
+      }
+    }
+
+    function updateProfile() {
+      profile = {
+        name: profileNameInput.value || `Player${Math.floor(Math.random() * 1000)}`,
+        bio: profileBioInput.value || ""
+      };
+      
+      profileName.textContent = profile.name;
+      profileBio.textContent = profile.bio || "No bio yet";
+      
+      localStorage.setItem('profile', JSON.stringify(profile));
+      profilePopup.style.display = 'none';
+      
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'profile',
+          playerId: playerId,
+          name: profile.name,
+          room: room
+        }));
+      }
+    }
+
+    function sendMessage() {
+      const messageText = chatInput.value.trim();
+      if (messageText && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'chat',
+          message: messageText,
+          playerId: playerId,
+          name: profile.name,
+          room: room
+        }));
+        chatInput.value = '';
+      }
+    }
+
+    function renderChatMessage(data) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${data.playerId === playerId ? 'message-self' : 'message-other'}`;
+      
+      const senderSpan = document.createElement('span');
+      senderSpan.className = `message-sender ${data.playerId === playerId ? 'message-sender-self' : ''}`;
+      senderSpan.textContent = `${data.name}: `;
+      
+      const textSpan = document.createElement('span');
+      textSpan.textContent = data.message;
+      
+      messageDiv.appendChild(senderSpan);
+      messageDiv.appendChild(textSpan);
+      chatMessages.appendChild(messageDiv);
+      
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function updatePlayerList(players) {
+      playersGrid.innerHTML = '';
+      
+      players.forEach(player => {
+        if (player.id === playerId) return;
+        
+        const playerDiv = document.createElement('div');
+        playerDiv.className = 'player-card';
+        playerDiv.id = `player-${player.id}`;
+        
+        const icon = document.createElement('svg');
+        icon.className = 'player-icon';
+        icon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        icon.setAttribute('width', '16');
+        icon.setAttribute('height', '16');
+        icon.setAttribute('viewBox', '0 0 24 24');
+        icon.setAttribute('fill', 'none');
+        icon.setAttribute('stroke', 'currentColor');
+        icon.setAttribute('stroke-width', '2');
+        icon.setAttribute('stroke-linecap', 'round');
+        icon.setAttribute('stroke-linejoin', 'round');
+        icon.innerHTML = '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>';
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = player.name || `Player ${player.id.substr(0, 4)}`;
+        
+        playerDiv.appendChild(icon);
+        playerDiv.appendChild(nameSpan);
+        playersGrid.appendChild(playerDiv);
+      });
+    }
+
+    function handleJoinedRoom(data) {
+      room = data.room;
+      players = data.players;
+      updatePlayerList(players);
+      
+      if (data.isHost) {
+        loadingStatus.textContent = `Room ${room} created! Waiting for players...`;
+        setupWebRTC(true);
+      } else {
+        loadingStatus.textContent = `Joined room ${room}! Connecting to host...`;
+        setupWebRTC(false);
+      }
+      
+      initGame();
+    }
+
+    async function setupWebRTC(isInitiator) {
+      peerConnection = new RTCPeerConnection(config);
+      
+      if (isInitiator) {
+        dataChannel = peerConnection.createDataChannel('drawing');
+        setupDataChannelHandlers();
+        
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        
+        ws.send(JSON.stringify({
+          type: 'offer',
+          offer: offer,
+          room: room,
+          playerId: playerId
+        }));
+      } else {
+        peerConnection.ondatachannel = (event) => {
+          dataChannel = event.channel;
+          setupDataChannelHandlers();
+        };
+      }
+      
+      peerConnection.onicecandidate = ({ candidate }) => {
+        if (candidate) {
+          ws.send(JSON.stringify({
+            type: 'candidate',
+            candidate: candidate,
+            room: room,
+            playerId: playerId
+          }));
+        }
+      };
+    }
+
+    function setupDataChannelHandlers() {
+      dataChannel.onopen = () => {
+        console.log('Data channel opened');
+        loadingStatus.textContent = `Connected in room ${room}!`;
+        container.style.display = 'flex';
+        loadingScreen.style.display = 'none';
+      };
+      
+      dataChannel.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        switch (data.type) {
+          case 'draw':
+            handleDrawingData(data);
+            break;
+          case 'clear':
+            handleClear();
+            break;
+          case 'fill':
+            ctx.fillStyle = data.color;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            break;
+        }
+      };
+    }
+
+    async function handleOffer(data) {
+      await peerConnection.setRemoteDescription(data.offer);
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      
+      ws.send(JSON.stringify({
+        type: 'answer',
+        answer: answer,
+        room: room,
+        playerId: playerId,
+        target: data.playerId
+      }));
+    }
+
+    async function handleAnswer(data) {
+      await peerConnection.setRemoteDescription(data.answer);
+    }
+
+    function handleCandidate(data) {
+      peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+    }
+
+    function toggleTheme() {
+      theme = theme === "dark" ? "light" : "dark";
+      localStorage.setItem('theme', theme);
+      document.body.className = theme;
+      
+      ctx.fillStyle = theme === "dark" ? "#1f2937" : "white";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      if (tool === "eraser") {
+        ctx.strokeStyle = theme === "dark" ? "#1f2937" : "white";
+      }
+    }
+
+    function initGame() {
+      document.body.className = theme;
+      initCanvas();
+      setupDrawing();
+      
+      const { correct, decoy } = getPromptPair();
+      const decoyChance = Math.random() < 0.25;
+      isDecoy = decoyChance;
+      prompt = decoyChance ? decoy : correct;
+      promptText.textContent = prompt;
+      decoyText.style.display = isDecoy ? 'block' : 'none';
+      
+      startTimer();
+      
+      profileName.textContent = profile.name;
+      profileBio.textContent = profile.bio || "No bio yet";
+      profileNameInput.value = profile.name;
+      profileBioInput.value = profile.bio || "";
+    }
+
+    joinRoom.addEventListener('click', () => {
+      room = roomInput.value || 'default';
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'join',
+          room: room,
+          playerId: playerId,
+          name: profile.name
+        }));
+        loadingStatus.textContent = `Joining room ${room}...`;
+      }
+    });
+
+    retryButton.addEventListener('click', connectWebSocket);
+
+    themeToggle.addEventListener('click', toggleTheme);
+    saveButton.addEventListener('click', handleSave);
+    submitButton.addEventListener('click', handleSubmit);
+    
+    brushTool.addEventListener('click', () => {
+      tool = "brush";
+      ctx.strokeStyle = color;
+      brushTool.className = 'btn-primary';
+      eraserTool.className = 'btn-outline';
+      fillTool.className = 'btn-outline';
+    });
+    
+    eraserTool.addEventListener('click', () => {
+      tool = "eraser";
+      ctx.strokeStyle = theme === "dark" ? "#1f2937" : "white";
+      eraserTool.className = 'btn-primary';
+      brushTool.className = 'btn-outline';
+      fillTool.className = 'btn-outline';
+    });
+    
+    fillTool.addEventListener('click', () => {
+      tool = "fill";
+      brushTool.className = 'btn-outline';
+      eraserTool.className = 'btn-outline';
+      fillTool.className = 'btn-primary';
+      handleFill();
+    });
+    
+    undoTool.addEventListener('click', handleUndo);
+    redoTool.addEventListener('click', handleRedo);
+    clearTool.addEventListener('click', handleClear);
+    
+    colorPicker.addEventListener('input', (e) => {
+      color = e.target.value;
+      if (tool === "brush") {
+        ctx.strokeStyle = color;
+      }
+    });
+    
+    brushSize.addEventListener('input', (e) => {
+      lineWidth = e.target.value;
+      ctx.lineWidth = lineWidth;
+    });
+    
+    editProfileButton.addEventListener('click', () => {
+      profilePopup.style.display = profilePopup.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    saveProfileButton.addEventListener('click', updateProfile);
+    
+    document.addEventListener('click', (e) => {
+      if (!profilePopup.contains(e.target) && e.target !== editProfileButton && e.target !== saveProfileButton) {
+        profilePopup.style.display = 'none';
+      }
+    });
+    
+    sendMessageButton.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    connectWebSocket();
+  </script>
+</body>
+</html>
