@@ -25,7 +25,7 @@ After That Connect The WebSocket To The Index
 And The Do node server.js And Its Should Work
 <br>
 <br>
->If You Had Any Problems Contact Me Via Discord ( @TheWindowsJava )
+- If You Had Any Problems Contact Me Via Discord ( @TheWindowsJava )
 <br>
 <br>
 # DOES ANY OTHER FILES?
