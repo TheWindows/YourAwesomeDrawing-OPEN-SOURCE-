@@ -31,3 +31,12 @@ Players can:
 2. **Navigate to project directory**:
    ```cmd
    cd path/to/your/project
+   ```
+4. **Install Packages**:
+   ```cmd
+   npm install
+   ```
+4. **Start The Server**:
+   ```cmd
+   node server.js
+   ``` 
