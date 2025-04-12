@@ -39,4 +39,8 @@ Players can:
 4. **Start The Server**:
    ```cmd
    node server.js
+   ```
+5. **Open Google And Type**:
+   ```Google
+   http://localhost:8080/
    ``` 
